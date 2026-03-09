@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.EquipmentMapper">
+
+    <resultMap id="EquipmentVOMap" type="com.example.entity.vo.response.EquipmentVO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="category" property="category"/>
+        <result column="brand" property="brand"/>
+        <result column="model" property="model"/>
+        <result column="description" property="description"/>
+        <result column="daily_price" property="dailyPrice"/>
+        <result column="deposit" property="deposit"/>
+        <result column="stock" property="stock"/>
+        <result column="available" property="available"/>
+        <result column="image" property="image"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="admin_name" property="adminName"/>
+        <result column="avg_rating" property="avgRating"/>
+        <result column="evaluation_count" property="evaluationCount"/>
+    </resultMap>
+
+    <select id="selectEquipmentPage" resultMap="EquipmentVOMap">
+        SELECT
+            e.*,
+            a.username as admin_name,
+            (SELECT AVG(rating) FROM db_evaluation WHERE equipment_id = e.id AND status = 1) as avg_rating,
+            (SELECT COUNT(*) FROM db_evaluation WHERE equipment_id = e.id AND status = 1) as evaluation_count
+        FROM db_equipment e
+        LEFT JOIN db_account a ON e.admin_id = a.id
+        <where>
+            1=1
+            <if test="query.keyword != null and query.keyword != ''">
+                AND (e.name LIKE CONCAT('%', #{query.keyword}, '%')
+                     OR e.category LIKE CONCAT('%', #{query.keyword}, '%')
+                     OR e.brand LIKE CONCAT('%', #{query.keyword}, '%')
+                     OR e.model LIKE CONCAT('%', #{query.keyword}, '%'))
+            </if>
+            <if test="query.category != null and query.category != ''">
+                AND e.category = #{query.category}
+            </if>
+            <if test="query.brand != null and query.brand != ''">
+                AND e.brand = #{query.brand}
+            </if>
+            <if test="query.status != null">
+                AND e.status = #{query.status}
+            </if>
+        </where>
+        ORDER BY e.create_time DESC
+    </select>
+
+    <select id="selectEquipmentById" resultMap="EquipmentVOMap">
+        SELECT 
+            e.*,
+            a.username as admin_name,
+            (SELECT AVG(rating) FROM db_evaluation WHERE equipment_id = e.id AND status = 1) as avg_rating,
+            (SELECT COUNT(*) FROM db_evaluation WHERE equipment_id = e.id AND status = 1) as evaluation_count
+        FROM db_equipment e
+        LEFT JOIN db_account a ON e.admin_id = a.id
+        WHERE e.id = #{id}
+    </select>
+
+</mapper>

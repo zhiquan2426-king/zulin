@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.EvaluationMapper">
+
+    <resultMap id="EvaluationVOMap" type="com.example.entity.vo.response.EvaluationVO">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="user_id" property="userId"/>
+        <result column="username" property="username"/>
+        <result column="avatar" property="userAvatar"/>
+        <result column="equipment_id" property="equipmentId"/>
+        <result column="equipment_name" property="equipmentName"/>
+        <result column="rating" property="rating"/>
+        <result column="content" property="content"/>
+        <result column="images" property="images"/>
+        <result column="create_time" property="createTime"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <select id="selectEvaluationPage" resultMap="EvaluationVOMap">
+        SELECT 
+            ev.*,
+            u.username,
+            u.avatar,
+            e.name as equipment_name
+        FROM db_evaluation ev
+        LEFT JOIN db_account u ON ev.user_id = u.id
+        LEFT JOIN db_equipment e ON ev.equipment_id = e.id
+        <where>
+            ev.status = 1
+            <if test="equipmentId != null">
+                AND ev.equipment_id = #{equipmentId}
+            </if>
+        </where>
+        ORDER BY ev.create_time DESC
+    </select>
+
+    <select id="selectEvaluationById" resultMap="EvaluationVOMap">
+        SELECT
+            ev.*,
+            u.username,
+            u.avatar,
+            e.name as equipment_name
+        FROM db_evaluation ev
+        LEFT JOIN db_account u ON ev.user_id = u.id
+        LEFT JOIN db_equipment e ON ev.equipment_id = e.id
+        WHERE ev.id = #{id}
+    </select>
+
+    <select id="selectEvaluationByOrderId" resultMap="EvaluationVOMap">
+        SELECT
+            ev.*,
+            u.username,
+            u.avatar,
+            e.name as equipment_name
+        FROM db_evaluation ev
+        LEFT JOIN db_account u ON ev.user_id = u.id
+        LEFT JOIN db_equipment e ON ev.equipment_id = e.id
+        WHERE ev.order_id = #{orderId}
+    </select>
+
+</mapper>

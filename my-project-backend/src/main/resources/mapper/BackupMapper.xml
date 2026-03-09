@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.BackupMapper">
+
+    <resultMap id="BackupVOMap" type="com.example.entity.vo.response.BackupVO">
+        <id column="id" property="id"/>
+        <result column="backup_name" property="backupName"/>
+        <result column="backup_path" property="backupPath"/>
+        <result column="backup_size" property="backupSize"/>
+        <result column="backup_type" property="backupType"/>
+        <result column="status" property="status"/>
+        <result column="description" property="description"/>
+        <result column="create_time" property="createTime"/>
+        <result column="creator_name" property="creatorName"/>
+    </resultMap>
+
+    <select id="selectBackupPage" resultMap="BackupVOMap">
+        SELECT 
+            b.*,
+            a.username as creator_name
+        FROM db_backup b
+        LEFT JOIN db_account a ON b.creator_id = a.id
+        ORDER BY b.create_time DESC
+    </select>
+
+</mapper>

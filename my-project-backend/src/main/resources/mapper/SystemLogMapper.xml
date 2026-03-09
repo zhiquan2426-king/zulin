@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.SystemLogMapper">
+
+    <resultMap id="SystemLogVOMap" type="com.example.entity.vo.response.SystemLogVO">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="username" property="username"/>
+        <result column="operation" property="operation"/>
+        <result column="method" property="method"/>
+        <result column="params" property="params"/>
+        <result column="time" property="time"/>
+        <result column="ip" property="ip"/>
+        <result column="status" property="status"/>
+        <result column="error" property="error"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectLogPage" resultMap="SystemLogVOMap">
+        SELECT * FROM db_system_log
+        <where>
+            1=1
+            <if test="query.username != null and query.username != ''">
+                AND username LIKE CONCAT('%', #{query.username}, '%')
+            </if>
+            <if test="query.operation != null and query.operation != ''">
+                AND operation LIKE CONCAT('%', #{query.operation}, '%')
+            </if>
+            <if test="query.status != null">
+                AND status = #{query.status}
+            </if>
+            <if test="query.startTime != null">
+                AND create_time &gt;= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                AND create_time &lt;= #{query.endTime}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.OrderMapper">
+
+    <resultMap id="OrderVOMap" type="com.example.entity.vo.response.OrderVO">
+        <id column="id" property="id"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="user_id" property="userId"/>
+        <result column="username" property="username"/>
+        <result column="user_phone" property="userPhone"/>
+        <result column="equipment_id" property="equipmentId"/>
+        <result column="equipment_name" property="equipmentName"/>
+        <result column="equipment_image" property="equipmentImage"/>
+        <result column="quantity" property="quantity"/>
+        <result column="start_date" property="startDate"/>
+        <result column="end_date" property="endDate"/>
+        <result column="rental_days" property="rentalDays"/>
+        <result column="daily_price" property="dailyPrice"/>
+        <result column="total_amount" property="totalAmount"/>
+        <result column="deposit" property="deposit"/>
+        <result column="payable_amount" property="payableAmount"/>
+        <result column="status" property="status"/>
+        <result column="payment_status" property="paymentStatus"/>
+        <result column="deposit_deduction_status" property="depositDeductionStatus"/>
+        <result column="deducted_amount" property="deductedAmount"/>
+        <result column="payment_time" property="paymentTime"/>
+        <result column="return_time" property="returnTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="remark" property="remark"/>
+        <result column="delivery_type" property="deliveryType"/>
+        <result column="delivery_type_text" property="deliveryTypeText"/>
+        <result column="delivery_no" property="deliveryNo"/>
+        <result column="recipient_name" property="recipientName"/>
+        <result column="recipient_phone" property="recipientPhone"/>
+        <result column="recipient_address" property="recipientAddress"/>
+        <result column="contact_name" property="contactName"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="pickup_address" property="pickupAddress"/>
+    </resultMap>
+
+    <select id="selectOrderPage" resultMap="OrderVOMap">
+        SELECT
+            o.*,
+            u.username,
+            u.phone as user_phone,
+            e.name as equipment_name,
+            e.image as equipment_image,
+            CASE o.status
+                WHEN 'pending' THEN '待支付'
+                WHEN 'paid' THEN '已支付'
+                WHEN 'renting' THEN '租赁中'
+                WHEN 'completed' THEN '已完成'
+                WHEN 'cancelled' THEN '已取消'
+                WHEN 'overdue' THEN '已逾期'
+            END as status_text,
+            CASE o.payment_status
+                WHEN 'unpaid' THEN '未支付'
+                WHEN 'paid' THEN '已支付'
+                WHEN 'refunded' THEN '已退款'
+            END as payment_status_text,
+            CASE o.deposit_deduction_status
+                WHEN 'none' THEN '无扣除'
+                WHEN 'pending' THEN '待扣除'
+                WHEN 'deducted' THEN '已扣除'
+                WHEN 'rejected' THEN '已拒绝'
+            END as deposit_deduction_status_text,
+            COALESCE(d.delivery_type, 1) as delivery_type,
+            COALESCE(CASE d.delivery_type
+                WHEN 1 THEN '自提'
+                WHEN 2 THEN '配送到家'
+                WHEN 3 THEN '上门取件'
+            END, '自提') as delivery_type_text,
+            d.delivery_no,
+            d.recipient_name,
+            d.recipient_phone,
+            d.recipient_address,
+            d.contact_name,
+            d.contact_phone,
+            d.pickup_address
+        FROM db_order o
+        LEFT JOIN db_account u ON o.user_id = u.id
+        LEFT JOIN db_equipment e ON o.equipment_id = e.id
+        LEFT JOIN db_delivery d ON o.order_no = d.order_no
+        <where>
+            1=1
+            <if test="userId != null">
+                AND o.user_id = #{userId}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND o.status = #{query.status}
+            </if>
+            <if test="query.paymentStatus != null and query.paymentStatus != ''">
+                AND o.payment_status = #{query.paymentStatus}
+            </if>
+        </where>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="selectOrderById" resultMap="OrderVOMap">
+        SELECT
+            o.*,
+            u.username,
+            u.phone as user_phone,
+            e.name as equipment_name,
+            e.image as equipment_image,
+            CASE o.status
+                WHEN 'pending' THEN '待支付'
+                WHEN 'paid' THEN '已支付'
+                WHEN 'renting' THEN '租赁中'
+                WHEN 'completed' THEN '已完成'
+                WHEN 'cancelled' THEN '已取消'
+                WHEN 'overdue' THEN '已逾期'
+            END as status_text,
+            CASE o.payment_status
+                WHEN 'unpaid' THEN '未支付'
+                WHEN 'paid' THEN '已支付'
+                WHEN 'refunded' THEN '已退款'
+            END as payment_status_text,
+            CASE o.deposit_deduction_status
+                WHEN 'none' THEN '无扣除'
+                WHEN 'pending' THEN '待扣除'
+                WHEN 'deducted' THEN '已扣除'
+                WHEN 'rejected' THEN '已拒绝'
+            END as deposit_deduction_status_text,
+            COALESCE(d.delivery_type, 1) as delivery_type,
+            COALESCE(CASE d.delivery_type
+                WHEN 1 THEN '自提'
+                WHEN 2 THEN '配送到家'
+                WHEN 3 THEN '上门取件'
+            END, '自提') as delivery_type_text,
+            d.delivery_no,
+            d.recipient_name,
+            d.recipient_phone,
+            d.recipient_address,
+            d.contact_name,
+            d.contact_phone,
+            d.pickup_address
+        FROM db_order o
+        LEFT JOIN db_account u ON o.user_id = u.id
+        LEFT JOIN db_equipment e ON o.equipment_id = e.id
+        LEFT JOIN db_delivery d ON o.order_no = d.order_no
+        WHERE o.id = #{id}
+    </select>
+
+    <select id="selectOrderByNo" resultMap="OrderVOMap">
+        SELECT
+            o.*,
+            u.username,
+            u.phone as user_phone,
+            e.name as equipment_name,
+            e.image as equipment_image,
+            CASE o.status
+                WHEN 'pending' THEN '待支付'
+                WHEN 'paid' THEN '已支付'
+                WHEN 'renting' THEN '租赁中'
+                WHEN 'completed' THEN '已完成'
+                WHEN 'cancelled' THEN '已取消'
+                WHEN 'overdue' THEN '已逾期'
+            END as status_text,
+            CASE o.payment_status
+                WHEN 'unpaid' THEN '未支付'
+                WHEN 'paid' THEN '已支付'
+                WHEN 'refunded' THEN '已退款'
+            END as payment_status_text,
+            CASE o.deposit_deduction_status
+                WHEN 'none' THEN '无扣除'
+                WHEN 'pending' THEN '待扣除'
+                WHEN 'deducted' THEN '已扣除'
+                WHEN 'rejected' THEN '已拒绝'
+            END as deposit_deduction_status_text,
+            COALESCE(d.delivery_type, 1) as delivery_type,
+            COALESCE(CASE d.delivery_type
+                WHEN 1 THEN '自提'
+                WHEN 2 THEN '配送到家'
+                WHEN 3 THEN '上门取件'
+            END, '自提') as delivery_type_text,
+            d.delivery_no,
+            d.recipient_name,
+            d.recipient_phone,
+            d.recipient_address,
+            d.contact_name,
+            d.contact_phone,
+            d.pickup_address
+        FROM db_order o
+        LEFT JOIN db_account u ON o.user_id = u.id
+        LEFT JOIN db_equipment e ON o.equipment_id = e.id
+        LEFT JOIN db_delivery d ON o.order_no = d.order_no
+        WHERE o.order_no = #{orderNo}
+    </select>
+
+    <update id="updateDeliveryNo">
+        UPDATE db_order
+        SET delivery_no = #{deliveryNo}
+        WHERE id = #{orderId}
+    </update>
+
+    <update id="updateDepositDeductionStatus">
+        UPDATE db_order
+        SET deposit_deduction_status = #{status},
+            deducted_amount = #{amount}
+        WHERE id = #{orderId}
+    </update>
+
+</mapper>
